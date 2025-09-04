@@ -1,101 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Amṛta Vāṇī Lecture Catalogue</title>
+  <meta charset="UTF-8" />
+  <title>Amṛta Vāṇī Lecture Catalogue (v2)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      font-family: Georgia, serif;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-    }
-    .header-image {
-      display: block;
-      margin: 10px auto 30px auto;
-      width: 200px;
-      border-radius: 12px;
-    }
-    #searchBox {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      margin-bottom: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #aaa;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background: #333;
-      color: white;
-    }
-    .pagination {
-      text-align: center;
-      margin-top: 20px;
-    }
-    .pagination button {
-      margin: 3px;
-      padding: 8px 12px;
-    }
+    body { font-family: Georgia, serif; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 8px; }
+    .header-image { display:block; margin: 10px auto 24px; width: 200px; border-radius: 12px; }
+    #searchBox { width:100%; padding:12px; font-size:16px; margin: 0 0 16px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+    thead th { background:#333; color:#fff; position: sticky; top: 0; z-index: 1; }
+    .pagination { text-align:center; margin-top:16px; }
+    .pagination button { margin:3px; padding:8px 12px; cursor:pointer; }
+    .active-page { background:#ff6600; color:#fff; }
   </style>
 </head>
 <body>
   <h1>Śrīla Gurudeva's Amṛta Vāṇī Lecture Catalogue</h1>
-  <img src="Gurudeva.jpg" class="header-image" alt="Śrīla Gurudeva">
-  <input type="text" id="searchBox" placeholder="Search by title or code...">
+  <img src="Gurudeva.jpg" alt="Śrīla Gurudeva" class="header-image" />
+
+  <input type="text" id="searchBox" placeholder="Search by title or code..." />
 
   <table id="lectureTable">
     <thead>
-      <tr><th>Lecture Code</th><th>Title</th><th>Section</th></tr>
+      <tr><th style="width:120px">Lecture Code</th><th>Title</th></tr>
     </thead>
     <tbody></tbody>
   </table>
 
   <div class="pagination" id="pagination"></div>
 
-  <script src="data.js"></script>
+  <script src="data_v2.js"></script>
   <script>
     const perPage = 100;
-    let filtered = lectures;
-    let currentPage = 1;
+    const tbody = document.querySelector("#lectureTable tbody");
+    const pagin = document.getElementById("pagination");
+    const searchBox = document.getElementById("searchBox");
 
-    function renderPage(page) {
-      currentPage = page;
+    // precompute a lowercase search field
+    let all = lectures.map(l => ({...l, _q: (l.title + " " + l.code).toLowerCase()}));
+    let filtered = all.slice();
+
+    function renderPage(page = 1) {
       const start = (page - 1) * perPage;
       const end = start + perPage;
       const slice = filtered.slice(start, end);
 
-      const tbody = document.querySelector("#lectureTable tbody");
-      tbody.innerHTML = slice.map(row => `
-        <tr><td>${row.code}</td><td>${row.title}</td><td>${row.section}</td></tr>
-      `).join("");
+      // draw rows safely
+      tbody.textContent = "";
+      const frag = document.createDocumentFragment();
+      for (const row of slice) {
+        const tr = document.createElement("tr");
+        const c = document.createElement("td"); c.textContent = row.code;
+        const t = document.createElement("td"); t.textContent = row.title;
+        tr.append(c, t);
+        frag.appendChild(tr);
+      }
+      tbody.appendChild(frag);
 
-      const totalPages = Math.ceil(filtered.length / perPage);
-      const pagin = document.getElementById("pagination");
-      pagin.innerHTML = "";
+      // pagination
+      const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+      pagin.textContent = "";
       for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        btn.onclick = () => renderPage(i);
-        if (i === page) btn.style.backgroundColor = "#ff6600";
-        pagin.appendChild(btn);
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = i;
+        if (i === page) b.className = "active-page";
+        b.addEventListener("click", () => renderPage(i));
+        pagin.appendChild(b);
       }
     }
 
-    document.getElementById("searchBox").addEventListener("input", e => {
-      const val = e.target.value.toLowerCase();
-      filtered = lectures.filter(l => (l.title + l.code + l.section).toLowerCase().includes(val));
+    function debounce(fn, ms = 150) {
+      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    }
+
+    const runSearch = debounce(q => {
+      q = q.toLowerCase();
+      filtered = q ? all.filter(l => l._q.includes(q)) : all.slice();
+      renderPage(1);
+    }, 150);
+
+    searchBox.addEventListener("input", e => runSearch(e.target.value));
+
+    // Optional: keep numeric ordering by code
+    all.sort((a,b) => Number(a.code) - Number(b.code));
+    filtered = all.slice();
+
+    window.addEventListener("DOMContentLoaded", () => {
+      searchBox.focus();
       renderPage(1);
     });
-
-    renderPage(1);
   </script>
 </body>
 </html>
