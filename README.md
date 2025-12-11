@@ -1,1 +1,1 @@
-# ggsm-lecture-manual-old
+# ggs-amrit-vani-index

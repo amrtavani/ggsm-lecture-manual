@@ -1,99 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>Amṛta Vāṇī Lecture Catalogue (v2)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { font-family: Georgia, serif; padding: 20px; }
-    h1 { text-align: center; margin-bottom: 8px; }
-    .header-image { display:block; margin: 10px auto 24px; width: 200px; border-radius: 12px; }
-    #searchBox { width:100%; padding:12px; font-size:16px; margin: 0 0 16px; }
-    table { width:100%; border-collapse: collapse; }
-    th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
-    thead th { background:#333; color:#fff; position: sticky; top: 0; z-index: 1; }
-    .pagination { text-align:center; margin-top:16px; }
-    .pagination button { margin:3px; padding:8px 12px; cursor:pointer; }
-    .active-page { background:#ff6600; color:#fff; }
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Amṛta Vāṇī Lecture Catalogue</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #d97706;
+            --primary-dark: #b45309;
+            --bg: #faf7f2;
+            --card-bg: #fff;
+            --text: #1f2937;
+            --radius: 12px;
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            text-align: center;
+            padding: 1rem .5rem;
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 200;
+            box-shadow: var(--shadow);
+        }
+
+        header img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            display: block;
+            margin: 0 auto .5rem;
+        }
+
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            margin-bottom: .5rem;
+        }
+
+        #searchBox {
+            width: 90%;
+            max-width: 520px;
+            padding: .75rem 1rem;
+            border-radius: 999px;
+            border: none;
+            margin: 0.5rem auto 1rem;
+            display: block;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+            font-size: 1rem;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .lecture-item {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: transform .12s, background .18s;
+        }
+
+        .lecture-item:hover {
+            transform: translateY(-2px);
+            background: #fff6e0;
+        }
+
+        .lecture-code {
+            font-size: .86rem;
+            color: var(--primary-dark);
+            font-weight: 600;
+            margin-bottom: .25rem;
+        }
+
+        .lecture-title {
+            font-size: 1rem;
+            word-break: break-word;
+        }
+
+        .pagination {
+            display: flex;
+            gap: .5rem;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 1rem;
+        }
+
+        .pagination button,
+        .pagination select {
+            padding: .55rem .9rem;
+            border-radius: 10px;
+            border: none;
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .pagination button:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            color: #6b7280;
+            padding: 1rem;
+            font-size: .88rem;
+        }
+
+        /* Desktop: 3 columns */
+        @media(min-width:768px) {
+            main {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <h1>Śrīla Gurudeva's Amṛta Vāṇī Lecture Catalogue</h1>
-  <img src="Gurudeva.jpg" alt="Śrīla Gurudeva" class="header-image" />
 
-  <input type="text" id="searchBox" placeholder="Search by title or code..." />
+    <header>
+        <img src="/SSGGSM Portrait.png" alt="Śrīla Gurudeva">
+        <h1>Śrīla Gurudeva's Amṛta Vāṇī</h1>
+        <input id="searchBox" type="search" placeholder="🔍 Search lectures (title or code)…">
+    </header>
 
-  <table id="lectureTable">
-    <thead>
-      <tr><th style="width:120px">Lecture Code</th><th>Title</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <main id="lectureContainer"></main>
 
-  <div class="pagination" id="pagination"></div>
+    <div class="pagination">
+        <button id="prevBtn">Prev</button>
+        <span class="page-info" id="pageInfo">Page 1 of 1</span>
+        <select id="jumpSelect"></select>
+        <button id="nextBtn">Next</button>
+    </div>
 
-  <script src="data.js"></script>
-  <script>
-    const perPage = 100;
-    const tbody = document.querySelector("#lectureTable tbody");
-    const pagin = document.getElementById("pagination");
-    const searchBox = document.getElementById("searchBox");
+    <footer>A humble offering in service of Śrīla Gurudeva — Amṛta Vāṇī digital archive.</footer>
 
-    // precompute a lowercase search field
-    let all = lectures.map(l => ({...l, _q: (l.title + " " + l.code).toLowerCase()}));
-    let filtered = all.slice();
+    <script src="data.js"></script>
+    <script>
+        const container = document.getElementById('lectureContainer');
+        const searchBox = document.getElementById('searchBox');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageInfo = document.getElementById('pageInfo');
+        const jumpSelect = document.getElementById('jumpSelect');
 
-    function renderPage(page = 1) {
-      const start = (page - 1) * perPage;
-      const end = start + perPage;
-      const slice = filtered.slice(start, end);
+        const perPage = 20;
+        let all = (window.lectures || []).map(l => ({ ...l, _q: (l.title + ' ' + l.code).toLowerCase() }));
+        let filtered = [...all];
+        let currentPage = 1;
 
-      // draw rows safely
-      tbody.textContent = "";
-      const frag = document.createDocumentFragment();
-      for (const row of slice) {
-        const tr = document.createElement("tr");
-        const c = document.createElement("td"); c.textContent = row.code;
-        const t = document.createElement("td"); t.textContent = row.title;
-        tr.append(c, t);
-        frag.appendChild(tr);
-      }
-      tbody.appendChild(frag);
+        function updateJumpSelect() {
+            jumpSelect.innerHTML = '';
+            const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+            for (let i = 1; i <= totalPages; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = 'Page ' + i;
+                if (i === currentPage) opt.selected = true;
+                jumpSelect.appendChild(opt);
+            }
+        }
 
-      // pagination
-      const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-      pagin.textContent = "";
-      for (let i = 1; i <= totalPages; i++) {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.textContent = i;
-        if (i === page) b.className = "active-page";
-        b.addEventListener("click", () => renderPage(i));
-        pagin.appendChild(b);
-      }
-    }
+        function renderPage(page = 1) {
+            const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+            currentPage = Math.max(1, Math.min(page, totalPages));
+            const start = (currentPage - 1) * perPage;
+            const slice = filtered.slice(start, start + perPage);
 
-    function debounce(fn, ms = 150) {
-      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
-    }
+            container.innerHTML = '';
+            if (slice.length === 0) {
+                const el = document.createElement('div');
+                el.className = 'lecture-item';
+                el.textContent = 'No lectures match your search.';
+                container.appendChild(el);
+            } else {
+                slice.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'lecture-item';
+                    div.innerHTML = `<div class="lecture-code">${item.code}</div><div class="lecture-title">${item.title}</div>`;
+                    container.appendChild(div);
+                });
+            }
 
-    const runSearch = debounce(q => {
-      q = q.toLowerCase();
-      filtered = q ? all.filter(l => l._q.includes(q)) : all.slice();
-      renderPage(1);
-    }, 150);
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+            updateJumpSelect();
+        }
 
-    searchBox.addEventListener("input", e => runSearch(e.target.value));
+        prevBtn.addEventListener('click', () => renderPage(currentPage - 1));
+        nextBtn.addEventListener('click', () => renderPage(currentPage + 1));
+        jumpSelect.addEventListener('change', e => renderPage(Number(e.target.value)));
 
-    // Optional: keep numeric ordering by code
-    all.sort((a,b) => Number(a.code) - Number(b.code));
-    filtered = all.slice();
+        function debounce(fn, ms = 180) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      searchBox.focus();
-      renderPage(1);
-    });
-  </script>
+        searchBox.addEventListener('input', debounce(e => {
+            const q = (e.target.value || '').toLowerCase().trim();
+            filtered = q ? all.filter(l => l._q.includes(q)) : [...all];
+            renderPage(1);
+        }));
+
+        window.addEventListener('DOMContentLoaded', () => renderPage(1));
+    </script>
 </body>
-</html>
 
+</html>
